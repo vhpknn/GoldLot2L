@@ -1,0 +1,2118 @@
+<!DOCTYPE html>
+<html lang="th" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบคำนวณและวิเคราะห์ราคาขาย (PriceBook & Revenue Calculator)</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-subtle: #f1f5f9;
+      --border: #e2e8f0;
+      --border-focus: #3b82f6;
+      --ink: #0f172a;
+      --muted: #64748b;
+      --brand: #1e3a8a;
+      --brand-accent: #2563eb;
+      --brand-light: #eff6ff;
+      --success: #16a34a;
+      --success-light: #dcfce7;
+      --success-text: #15803d;
+      --warning: #d97706;
+      --warning-light: #fef3c7;
+      --warning-text: #92400e;
+      --danger: #dc2626;
+      --danger-light: #fee2e2;
+      --danger-text: #b91c1c;
+      --purple: #7c3aed;
+      --purple-light: #f3e8ff;
+      --radius-sm: 6px;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.08);
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0b0f19;
+      --surface: #1e293b;
+      --surface-subtle: #0f172a;
+      --border: #334155;
+      --border-focus: #60a5fa;
+      --ink: #f8fafc;
+      --muted: #94a3b8;
+      --brand: #1e40af;
+      --brand-accent: #3b82f6;
+      --brand-light: #1e3a5f;
+      --success: #22c55e;
+      --success-light: #064e3b;
+      --success-text: #4ade80;
+      --warning: #f59e0b;
+      --warning-light: #451a03;
+      --warning-text: #fcd34d;
+      --danger: #ef4444;
+      --danger-light: #4c0519;
+      --danger-text: #f87171;
+      --purple: #a855f7;
+      --purple-light: #3b0764;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font);
+      background-color: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+      padding-bottom: 60px;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%);
+      color: white;
+      padding: 24px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    [data-theme="dark"] header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1d4ed8 100%);
+      border-bottom: 1px solid #1e3a8a;
+    }
+
+    .header-content {
+      max-width: 1300px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-title h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+
+    .header-title p {
+      font-size: 13px;
+      color: #bfdbfe;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .header-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge-chip {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(4px);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Theme Toggle Button */
+    .theme-toggle-btn {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      color: white;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .theme-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.32);
+      transform: translateY(-1px);
+    }
+
+    .container {
+      max-width: 1300px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    /* Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .tab-btn:hover {
+      background: var(--surface-subtle);
+      color: var(--ink);
+    }
+
+    .tab-btn.active {
+      background: var(--surface);
+      color: var(--brand-accent);
+      border-color: var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tab-badge {
+      background: #2563eb;
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 10px;
+      text-transform: uppercase;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Grid Layouts */
+    .grid-top {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 960px) {
+      .grid-top {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .card-header {
+      padding: 14px 18px;
+      background: var(--surface-subtle);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-body {
+      padding: 18px;
+    }
+
+    /* Form groups */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--ink);
+    }
+
+    .form-group label span.label-note {
+      font-size: 11px;
+      font-weight: normal;
+      color: var(--muted);
+    }
+
+    .input-control {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      color: var(--ink);
+      background-color: var(--surface);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .input-control:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    }
+
+    .input-group {
+      display: flex;
+      align-items: center;
+    }
+
+    .input-group .prefix,
+    .input-group .suffix {
+      background: var(--surface-subtle);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .input-group .prefix {
+      border-right: none;
+      border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+    }
+
+    .input-group .suffix {
+      border-left: none;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+
+    .input-group .input-control {
+      border-radius: 0;
+    }
+
+    .input-group .prefix + .input-control {
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+
+    .input-group .input-control:has(+ .suffix) {
+      border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+    }
+
+    .input-group .prefix + .input-control:has(+ .suffix) {
+      border-radius: 0;
+    }
+
+    /* KPI Highlights */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      position: relative;
+    }
+
+    .kpi-card.highlight {
+      background: var(--surface-subtle);
+      border-color: var(--border);
+    }
+
+    .kpi-title {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .kpi-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .status-pass {
+      background: var(--success-light);
+      color: var(--success-text);
+      border: 1px solid rgba(74, 222, 128, 0.4);
+    }
+
+    .status-fail {
+      background: var(--danger-light);
+      color: var(--danger-text);
+      border: 1px solid rgba(248, 113, 113, 0.4);
+    }
+
+    /* Comparison Box */
+    .calc-summary-box {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .calc-summary-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .channel-compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .channel-compare-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .channel-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+    }
+
+    .channel-box-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+
+    .channel-net {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .channel-min {
+      font-size: 12px;
+      color: var(--muted);
+      border-top: 1px dashed var(--border);
+      padding-top: 8px;
+      margin-top: 8px;
+    }
+
+    /* Waterfall / Breakdown Table */
+    .breakdown-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .breakdown-table th,
+    .breakdown-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .breakdown-table th {
+      background: var(--surface-subtle);
+      font-weight: 600;
+      text-align: left;
+      color: var(--muted);
+    }
+
+    .breakdown-table td.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .breakdown-table tr.total-row td {
+      font-weight: 700;
+      border-top: 2px solid var(--border);
+      border-bottom: 2px solid var(--border);
+      background: var(--surface-subtle);
+    }
+
+    /* Price Recommendation Banner */
+    .recommend-box {
+      background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+      border: 1px solid #86efac;
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+    }
+
+    [data-theme="dark"] .recommend-box {
+      background: linear-gradient(135deg, #052e16 0%, #064e3b 100%);
+      border-color: #047857;
+    }
+
+    .recommend-left h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #166534;
+      margin-bottom: 2px;
+    }
+
+    [data-theme="dark"] .recommend-left h3 {
+      color: #4ade80;
+    }
+
+    .recommend-left p {
+      font-size: 12px;
+      color: #15803d;
+    }
+
+    [data-theme="dark"] .recommend-left p {
+      color: #86efac;
+    }
+
+    .recommend-price {
+      font-size: 28px;
+      font-weight: 800;
+      color: #15803d;
+      letter-spacing: -0.02em;
+    }
+
+    [data-theme="dark"] .recommend-price {
+      color: #4ade80;
+    }
+
+    /* Table styles for PriceBook */
+    .table-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .search-input {
+      padding: 7px 12px;
+      font-size: 13px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      min-width: 200px;
+      background-color: var(--surface);
+      color: var(--ink);
+    }
+
+    .select-filter {
+      padding: 7px 10px;
+      font-size: 13px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background-color: var(--surface);
+      color: var(--ink);
+    }
+
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      max-height: 600px;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .data-table thead {
+      position: sticky;
+      top: 0;
+      background: #1e3a8a;
+      color: white;
+      z-index: 10;
+    }
+
+    [data-theme="dark"] .data-table thead {
+      background: #0f172a;
+      border-bottom: 2px solid #3b82f6;
+    }
+
+    .data-table th {
+      padding: 10px 12px;
+      font-weight: 600;
+      text-align: left;
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .data-table th.num {
+      text-align: right;
+    }
+
+    .data-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      border-right: 1px solid var(--surface-subtle);
+    }
+
+    .data-table td.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .data-table tbody tr:hover {
+      background-color: var(--surface-subtle);
+      cursor: pointer;
+    }
+
+    .pill-btn {
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--brand-accent);
+      transition: all 0.15s;
+    }
+
+    .pill-btn:hover {
+      background: var(--brand-accent);
+      color: white;
+      border-color: var(--brand-accent);
+    }
+
+    /* Tab: Monthly vs Annual Styles */
+    .preset-pill-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .preset-pill {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .preset-pill:hover,
+    .preset-pill.active {
+      background: var(--brand-light);
+      border-color: var(--brand-accent);
+      color: var(--brand-accent);
+    }
+
+    .comparison-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 840px) {
+      .comparison-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .plan-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .plan-card.featured {
+      border-color: #10b981;
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, var(--surface) 40%);
+    }
+
+    .plan-card-tag {
+      position: absolute;
+      top: -12px;
+      right: 20px;
+      background: #10b981;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 999px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .plan-card-header {
+      margin-bottom: 16px;
+    }
+
+    .plan-card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+
+    .plan-price-large {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+
+    .plan-price-large span.unit {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .plan-metric-list {
+      margin: 18px 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .metric-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .metric-item .label {
+      color: var(--muted);
+    }
+
+    .metric-item .val {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .comparison-summary-banner {
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+      color: white;
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    [data-theme="dark"] .comparison-summary-banner {
+      background: linear-gradient(135deg, #0f172a 0%, #1e40af 100%);
+      border: 1px solid #1e3a8a;
+    }
+
+    .summary-banner-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .banner-stat-box {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(4px);
+      padding: 14px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .banner-stat-box .title {
+      font-size: 12px;
+      color: #bfdbfe;
+      margin-bottom: 4px;
+    }
+
+    .banner-stat-box .number {
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .banner-stat-box .note {
+      font-size: 11px;
+      color: #dbeafe;
+      margin-top: 2px;
+    }
+
+    /* Highlight rows in annual breakdown table */
+    .highlight-table-row {
+      background: #fefce8;
+    }
+
+    [data-theme="dark"] .highlight-table-row {
+      background: #422006;
+    }
+
+    /* Helper styles */
+    .text-success { color: var(--success); }
+    .text-danger { color: var(--danger); }
+    .text-muted { color: var(--muted); }
+    .fw-bold { font-weight: 700; }
+    .btn-reset {
+      background: var(--surface-subtle);
+      color: var(--ink);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+    }
+    .btn-reset:hover {
+      background: var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-content">
+      <div class="header-title">
+        <h1>ระบบคำนวณและวิเคราะห์ราคาขาย (PriceBook & Revenue Simulator)</h1>
+        <p>วิเคราะห์รายได้สุทธิเทียบเป้าหมาย (Web vs. App Store) พร้อมเปรียบเทียบกลยุทธ์ รายเดือน vs. รายปี</p>
+      </div>
+      <div class="header-actions">
+        <div class="header-badges">
+          <span class="badge-chip">48 รายการครอบคลุม 12 ประเทศ</span>
+          <span class="badge-chip">Target: 50% ของ BasePrice</span>
+        </div>
+        <!-- Theme Toggle Button -->
+        <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()" title="สลับโหมด มืด / สว่าง">
+          <span id="theme-icon">🌙</span>
+          <span id="theme-text">โหมดมืด</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('simulator')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1z"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg>
+        เครื่องจำลองราคา (Simulator)
+      </button>
+
+      <button class="tab-btn" onclick="switchTab('annual')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        เปรียบเทียบ รายเดือน vs รายปี
+        <span class="tab-badge">ใหม่</span>
+      </button>
+
+      <button class="tab-btn" onclick="switchTab('pricebook')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        ตาราง PriceBook ทั้งหมด (48 รายการ)
+      </button>
+
+      <button class="tab-btn" onclick="switchTab('assumptions')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        ตั้งค่าสมมติฐาน (Assumptions)
+      </button>
+    </div>
+
+    <!-- TAB 1: SIMULATOR -->
+    <div id="tab-simulator" class="tab-content active">
+      <div class="grid-top">
+        <!-- Input controls -->
+        <div class="card">
+          <div class="card-header">
+            <h2>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              เลือกรายการหรือปรับราคา
+            </h2>
+            <button class="btn-reset" onclick="resetSimulatorToDefault()">ค่าเริ่มต้น</button>
+          </div>
+          <div class="card-body">
+            <div class="form-group">
+              <label for="sim-select-item">
+                เลือกจาก PriceBook สำเร็จรูป
+                <span class="label-note">หรือกรอกตัวเลขเองด้านล่าง</span>
+              </label>
+              <select id="sim-select-item" class="input-control" onchange="onSelectItem(this.value)">
+                <!-- populated by JS -->
+              </select>
+            </div>
+
+            <div style="height: 1px; background: var(--border); margin: 16px 0;"></div>
+
+            <div class="form-group">
+              <label for="sim-base-price">
+                Base Price (ราคาตั้งต้น)
+                <span class="label-note">USD</span>
+              </label>
+              <div class="input-group">
+                <span class="prefix">$</span>
+                <input type="number" id="sim-base-price" class="input-control" step="0.01" value="3.00" oninput="calculateSimulator()">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="sim-multiplier">
+                Multiplier (ตัวคูณกำลังซื้อ)
+                <span class="label-note">เท่า</span>
+              </label>
+              <input type="number" id="sim-multiplier" class="input-control" step="0.05" value="1.00" oninput="calculateSimulator()">
+            </div>
+
+            <div class="form-group">
+              <label for="sim-tax">
+                Tax Rate (ภาษี)
+                <span class="label-note">เช่น 0.10 คือ 10%</span>
+              </label>
+              <div class="input-group">
+                <input type="number" id="sim-tax" class="input-control" step="0.01" value="0.10" oninput="calculateSimulator()">
+                <span class="suffix">%</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="sim-final-price">
+                Final Price (ราคาตั้งขายจริง)
+                <span class="label-note">รวมภาษีแล้ว</span>
+              </label>
+              <div class="input-group">
+                <span class="prefix">$</span>
+                <input type="number" id="sim-final-price" class="input-control" step="0.01" value="2.99" oninput="calculateSimulator()">
+              </div>
+            </div>
+
+            <div style="font-size: 11px; color: var(--muted); margin-top: 14px; background: var(--surface-subtle); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+              💡 <strong>คำแนะนำ:</strong> ทดลองปรับลดหรือเพิ่มราคา <em>Final Price</em> เพื่อดูว่ากำไรสุทธิยังผ่านเป้าหมาย <strong>(Pass)</strong> หรือไม่
+            </div>
+          </div>
+        </div>
+
+        <!-- Output / Results -->
+        <div>
+          <!-- Top KPI Cards -->
+          <div class="kpi-row">
+            <div class="kpi-card">
+              <div class="kpi-title">เป้าหมายกำไรสุทธิ (Target)</div>
+              <div class="kpi-value text-brand" id="res-target">$1.50</div>
+              <div class="kpi-sub">50% ของ BasePrice ($<span id="sub-base">3.00</span>)</div>
+            </div>
+
+            <div class="kpi-card highlight">
+              <div class="kpi-title">สถานะความคุ้มค่า (Pass / Fail)</div>
+              <div style="margin: 4px 0;">
+                <span id="res-status" class="status-badge status-pass">ผ่านเป้าหมาย</span>
+              </div>
+              <div class="kpi-sub" id="res-limiting-note">ตัวจำกัดราคา: Web Platform</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-title">ราคาแนะนำต่ำสุด (Recommended)</div>
+              <div class="kpi-value text-success" id="res-recommended">$2.99</div>
+              <div class="kpi-sub">ราคาจิตวิทยาลงท้าย .49/.99</div>
+            </div>
+          </div>
+
+          <!-- Channel Comparison Box -->
+          <div class="calc-summary-box">
+            <div class="calc-summary-title">
+              <span>เปรียบเทียบรายได้สุทธิระหว่างช่องทาง (Net Revenue)</span>
+              <span style="font-size: 11px; color: var(--muted); font-weight: normal;">*ต้องผ่านเป้าทั้งสองช่องทาง</span>
+            </div>
+
+            <div class="channel-compare-grid">
+              <!-- Web Channel -->
+              <div class="channel-box" id="box-web">
+                <div class="channel-box-header">
+                  <span>🌐 ขายผ่าน Web</span>
+                  <span id="tag-web-status" class="status-badge status-pass" style="font-size: 10px; padding: 2px 6px;">ผ่าน</span>
+                </div>
+                <div class="channel-net" id="res-net-web">$2.23</div>
+                <div style="font-size: 11px; color: var(--muted);">
+                  ค่าธรรมเนียม: 2.9% + $0.30 | ต้นทุนผันแปร: $0.10
+                </div>
+                <div class="channel-min">
+                  ราคาตั้งขายต่ำสุดเพื่อผ่านเป้า: <strong id="res-min-web">$2.16</strong>
+                </div>
+              </div>
+
+              <!-- Store Channel -->
+              <div class="channel-box" id="box-store">
+                <div class="channel-box-header">
+                  <span>📱 ขายผ่าน In-App Store</span>
+                  <span id="tag-store-status" class="status-badge status-pass" style="font-size: 10px; padding: 2px 6px;">ผ่าน</span>
+                </div>
+                <div class="channel-net" id="res-net-store">$2.21</div>
+                <div style="font-size: 11px; color: var(--muted);">
+                  ค่าธรรมเนียม: 15.0% | ต้นทุนผันแปร: $0.10
+                </div>
+                <div class="channel-min">
+                  ราคาตั้งขายต่ำสุดเพื่อผ่านเป้า: <strong id="res-min-store">$2.07</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cost Breakdown / Waterfall -->
+          <div class="card">
+            <div class="card-header">
+              <h2>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                โครงสร้างการหักเงินจากราคาตั้งขาย (Price Waterfall)
+              </h2>
+            </div>
+            <div class="card-body" style="padding: 0;">
+              <table class="breakdown-table">
+                <thead>
+                  <tr>
+                    <th>รายการต้นทุน / ค่าธรรมเนียม</th>
+                    <th class="num">ช่องทาง Web</th>
+                    <th class="num">ช่องทาง App Store</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>ราคาตั้งขายจริง (Final Price รวมภาษี)</td>
+                    <td class="num" id="wf-final-web">$2.99</td>
+                    <td class="num" id="wf-final-store">$2.99</td>
+                  </tr>
+                  <tr>
+                    <td>หักภาษี (Tax <span id="wf-tax-pct">10.0%</span>)</td>
+                    <td class="num text-danger" id="wf-tax-web">-$0.27</td>
+                    <td class="num text-danger" id="wf-tax-store">-$0.27</td>
+                  </tr>
+                  <tr>
+                    <td>รายได้ก่อนหักค่าธรรมเนียมแพลตฟอร์ม</td>
+                    <td class="num" id="wf-prefee-web">$2.72</td>
+                    <td class="num" id="wf-prefee-store">$2.72</td>
+                  </tr>
+                  <tr>
+                    <td>หักค่าธรรมเนียมแพลตฟอร์ม (Fee)</td>
+                    <td class="num text-danger" id="wf-fee-web">-$0.39</td>
+                    <td class="num text-danger" id="wf-fee-store">-$0.41</td>
+                  </tr>
+                  <tr>
+                    <td>หักต้นทุนผันแปร (Variable Cost)</td>
+                    <td class="num text-danger" id="wf-varcost-web">-$0.10</td>
+                    <td class="num text-danger" id="wf-varcost-store">-$0.10</td>
+                  </tr>
+                  <tr class="total-row">
+                    <td>รายได้สุทธิที่ได้รับจริง (Net Earnings)</td>
+                    <td class="num fw-bold" id="wf-net-web">$2.23</td>
+                    <td class="num fw-bold" id="wf-net-store">$2.21</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Recommended Card -->
+          <div class="recommend-box">
+            <div class="recommend-left">
+              <h3>ราคาแนะนำขั้นต่ำตามหลักจิตวิทยา (Min Psychological Price): <span id="rec-minprice-highlight">$2.49</span></h3>
+              <p>ราคาขายเดิมของคุณ: $<span id="rec-user-price">2.99</span> | ราคาก่อนปัดเศษ (MinRaw): $<span id="rec-minraw">2.16</span></p>
+            </div>
+            <div class="recommend-price" id="rec-final-recommend">$2.99</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: MONTHLY VS ANNUAL -->
+    <div id="tab-annual" class="tab-content">
+      <!-- Strategy Presets -->
+      <div class="card">
+        <div class="card-header">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            เลือกชุดสถานการณ์กลยุทธ์ราคา (Pricing Strategy Presets)
+          </h2>
+          <span style="font-size: 12px; color: var(--muted);">คลิกเพื่อโหลดราคาเปรียบเทียบทันที</span>
+        </div>
+        <div class="card-body">
+          <div class="preset-pill-group">
+            <button class="preset-pill active" onclick="applyAnnualPreset(1.39, 11.88, 0.99, 'Look & Feel ($1.39 vs $11.88/ปี)')">
+              🎯 $1.39/เดือน vs $11.88/ปี (เฉลี่ย $0.99/ด)
+            </button>
+            <button class="preset-pill" onclick="applyAnnualPreset(1.49, 11.88, 0.99, 'แนะนำ: $1.49 จิตวิทยา vs $11.88/ปี')">
+              ⭐ แนะนำ: $1.49 (.49 จิตวิทยา) vs $11.88/ปี (ลด 33%)
+            </button>
+            <button class="preset-pill" onclick="applyAnnualPreset(2.99, 24.99, 2.08, 'Tier 2: $2.99 vs $24.99/ปี')">
+              📦 Tier 2: $2.99/เดือน vs $24.99/ปี (ลด ~30%)
+            </button>
+            <button class="preset-pill" onclick="applyAnnualPreset(8.99, 79.99, 6.67, 'Tier 3: $8.99 vs $79.99/ปี')">
+              💎 Tier 3: $8.99/เดือน vs $79.99/ปี (ลด ~26%)
+            </button>
+          </div>
+
+          <!-- Controls row -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 10px; background: var(--surface-subtle); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border);">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="ann-monthly-price">
+                ราคาแผนรายเดือน (USD)
+                <span class="label-note">ต่อเดือน</span>
+              </label>
+              <div class="input-group">
+                <span class="prefix">$</span>
+                <input type="number" id="ann-monthly-price" class="input-control" step="0.05" value="1.39" oninput="calculateAnnualComparison()">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="ann-yearly-price">
+                ราคาแผนรายปี (ตัดรอบ 1 ครั้ง)
+                <span class="label-note">ต่อปี</span>
+              </label>
+              <div class="input-group">
+                <span class="prefix">$</span>
+                <input type="number" id="ann-yearly-price" class="input-control" step="0.05" value="11.88" oninput="onYearlyPriceInput()">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="ann-equiv-monthly">
+                เทียบเท่าเฉลี่ยต่อเดือน
+                <span class="label-note">แสดงในหน้าขาย</span>
+              </label>
+              <div class="input-group">
+                <span class="prefix">$</span>
+                <input type="number" id="ann-equiv-monthly" class="input-control" step="0.01" value="0.99" oninput="onEquivMonthlyInput()">
+                <span class="suffix">/mo</span>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="ann-channel">
+                ช่องทางจำหน่าย
+                <span class="label-note">Web / Store</span>
+              </label>
+              <select id="ann-channel" class="input-control" onchange="calculateAnnualComparison()">
+                <option value="WEB">🌐 ขายผ่าน Web (2.9% + $0.30)</option>
+                <option value="STORE">📱 ขายผ่าน App Store (15%)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Comparison Summary Banner -->
+      <div class="comparison-summary-banner">
+        <div style="margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <h3 style="font-size: 18px; font-weight: 700;">ผลวิเคราะห์เปรียบเทียบในมุมธุรกิจ (1 Customer / 1 Year)</h3>
+            <p style="font-size: 13px; color: #bfdbfe;">เปรียบเทียบเงินเข้ากระเป๋าจริงเมื่อลูกค้าอยู่ครบ 1 ปี ระหว่างสมัครรายเดือน 12 ครั้ง vs สมัครรายปี 1 ครั้ง</p>
+          </div>
+          <span id="ann-badge-recommend" class="badge-chip" style="background: rgba(16, 185, 129, 0.25); border-color: #34d399; font-weight: 700;">
+            🌟 แนะนำ: แพ็กเกจรายปีคุ้มค่ากว่าทั้งคุณและลูกค้า
+          </span>
+        </div>
+
+        <div class="summary-banner-grid">
+          <div class="banner-stat-box">
+            <div class="title">ส่วนลดที่ลูกค้าได้รับ (Customer Discount)</div>
+            <div class="number" id="sum-discount-pct">28.8%</div>
+            <div class="note" id="sum-discount-text">ประหยัด $4.80 ต่อปี (เทียบเท่าฟรี ~3.5 เดือน)</div>
+          </div>
+
+          <div class="banner-stat-box">
+            <div class="title">ประหยัดค่าธรรมเนียมคงที่ (Fixed Fee Escape)</div>
+            <div class="number text-success" style="color: #4ade80;" id="sum-fixed-saved">$4.40</div>
+            <div class="note">ลดรอบตัดเงินจาก 12 ครั้งเหลือเพียง 1 ครั้ง</div>
+          </div>
+
+          <div class="banner-stat-box">
+            <div class="title">สัดส่วนกำไรสุทธิเฉลี่ย (Net Profit Margin)</div>
+            <div class="number" id="sum-margin-compare">76.4% vs 59.2%</div>
+            <div class="note" id="sum-margin-text">รายปีได้ Margin สูงกว่าถึง +17.2%</div>
+          </div>
+
+          <div class="banner-stat-box">
+            <div class="title">กระแสเงินสดรับล่วงหน้า (Upfront Cash)</div>
+            <div class="number" id="sum-cashflow">$11.88</div>
+            <div class="note">รับเงินก้อนทันทีตั้งแต่วันแรก ลดความเสี่ยง Churn</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Side-by-Side Cards -->
+      <div class="comparison-container">
+        <!-- Monthly Card -->
+        <div class="plan-card" id="card-monthly">
+          <div>
+            <div class="plan-card-header">
+              <div class="plan-card-title">📅 สมัครแบบรายเดือน (Monthly Plan)</div>
+              <p style="font-size: 12px; color: var(--muted);">ลูกค้าจ่ายทุกเดือน รวม 12 รอบธุรกรรมต่อปี</p>
+            </div>
+
+            <div class="plan-price-large">
+              <span id="card-m-price">$1.39</span>
+              <span class="unit">/ เดือน</span>
+            </div>
+            <div style="font-size: 12px; color: var(--muted); margin-top: 4px;">
+              ยอดรวมจ่าย 1 ปี: <strong id="card-m-total-gross">$16.68</strong>
+            </div>
+
+            <div class="plan-metric-list">
+              <div class="metric-item">
+                <span class="label">รายได้สุทธิเข้ากระเป๋า / เดือน:</span>
+                <span class="val" id="card-m-net-month">$0.82</span>
+              </div>
+              <div class="metric-item">
+                <span class="label">สัดส่วนกำไรสุทธิต่อเดือน:</span>
+                <span class="val" id="card-m-margin">59.2%</span>
+              </div>
+              <div class="metric-item">
+                <span class="label">ค่าธรรมเนียมคงที่สะสม 1 ปี (12 ครั้ง):</span>
+                <span class="val text-danger" id="card-m-total-fixed">-$4.80</span>
+              </div>
+              <div class="metric-item">
+                <span class="label">ค่าธรรมเนียม % และภาษีสะสม 1 ปี:</span>
+                <span class="val text-danger" id="card-m-total-pctfee">-$2.01</span>
+              </div>
+              <div class="metric-item" style="border-top: 1px dashed var(--border); padding-top: 8px;">
+                <span class="label" style="font-weight: 700; color: var(--ink);">เงินสุทธิสะสม 1 ปี (ถ้าอยู่ครบ 12 ด.):</span>
+                <span class="val fw-bold" style="font-size: 16px;" id="card-m-net-year">$9.87</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-sm); padding: 12px; font-size: 12px; color: var(--danger-text);">
+            ⚠️ <strong>ข้อเสียของรายเดือน:</strong> โดนค่าธรรมเนียมคงที่ ($0.30 + $0.10) หักซ้ำๆ ทุกเดือน กินสัดส่วนเกือบ <strong>30%</strong> ของยอดเงิน และเสี่ยงต่อการยกเลิก (Churn) ทุกๆ เดือน
+          </div>
+        </div>
+
+        <!-- Annual Card -->
+        <div class="plan-card featured" id="card-annual">
+          <div class="plan-card-tag">🚀 แนะนำสูงสุด (คุ้มทุนที่สุด)</div>
+          <div>
+            <div class="plan-card-header">
+              <div class="plan-card-title">🎉 สมัครแบบรายปี (Annual Billing)</div>
+              <p style="font-size: 12px; color: var(--muted);">ลูกค้าจ่ายครั้งเดียว ใช้งานได้ 12 เดือน (1 ธุรกรรม)</p>
+            </div>
+
+            <div class="plan-price-large text-success">
+              <span id="card-y-equiv">$0.99</span>
+              <span class="unit">/ เดือน</span>
+            </div>
+            <div style="font-size: 12px; color: var(--success); margin-top: 4px;">
+              เรียกเก็บจริงครั้งเดียว: <strong id="card-y-price">$11.88 / ปี</strong>
+            </div>
+
+            <div class="plan-metric-list">
+              <div class="metric-item">
+                <span class="label">รายได้สุทธิเทียบเท่า / เดือน:</span>
+                <span class="val text-success" id="card-y-net-month">$0.76</span>
+              </div>
+              <div class="metric-item">
+                <span class="label">สัดส่วนกำไรสุทธิต่อธุรกรรม:</span>
+                <span class="val text-success" id="card-y-margin">76.4%</span>
+              </div>
+              <div class="metric-item">
+                <span class="label">ค่าธรรมเนียมคงที่ทั้งปี (หักเพียง 1 ครั้ง):</span>
+                <span class="val text-success" id="card-y-total-fixed">-$0.40</span>
+              </div>
+              <div class="metric-item">
+                <span class="label">ค่าธรรมเนียม % และภาษีทั้งปี:</span>
+                <span class="val text-danger" id="card-y-total-pctfee">-$2.40</span>
+              </div>
+              <div class="metric-item" style="border-top: 1px dashed var(--border); padding-top: 8px;">
+                <span class="label" style="font-weight: 700; color: var(--ink);">เงินสุทธิที่ได้รับจริงทันที (Net Upfront):</span>
+                <span class="val fw-bold text-success" style="font-size: 16px;" id="card-y-net-year">$9.08</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-sm); padding: 12px; font-size: 12px; color: var(--success-text);">
+            💡 <strong>จุดเด่นของรายปี:</strong> ถึงแม้ลูกค้าจะได้ส่วนลด <strong><span id="note-discount">28.8%</span></strong> แต่เงินสุทธิที่คุณได้รับกลับแทบไม่ต่างกันเลย (<strong>$<span id="note-netdiff">0.79</span></strong>) เพราะประหยัดค่าธรรมเนียมคงที่ไปได้ถึง <strong>$<span id="note-savedfixed">4.40</span></strong> แถมได้เงินสดก้อนทันทีและไม่มี Churn ตลอดทั้งปี!
+          </div>
+        </div>
+      </div>
+
+      <!-- Breakdown Table: 1-Year Financial Waterfall -->
+      <div class="card">
+        <div class="card-header">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            ตารางแจกแจงบัญชีเปรียบเทียบในรอบ 1 ปี (1-Year Side-by-Side Breakdown)
+          </h2>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <table class="breakdown-table">
+            <thead>
+              <tr>
+                <th>รายการบัญชี (1 ปีต่อ 1 ลูกค้า)</th>
+                <th class="num">แผนรายเดือน (ตัดรอบ 12 ครั้ง)</th>
+                <th class="num">แผนรายปี (ตัดรอบ 1 ครั้ง)</th>
+                <th class="num">ผลต่าง (ความได้เปรียบ)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>ยอดรวมที่ลูกค้าจ่าย (Gross Sales)</td>
+                <td class="num" id="tbl-m-gross">$16.68</td>
+                <td class="num" id="tbl-y-gross">$11.88</td>
+                <td class="num text-danger" id="tbl-diff-gross">-$4.80 (ลูกค้าประหยัด)</td>
+              </tr>
+              <tr>
+                <td>หักภาษี (Tax Rate 10%)</td>
+                <td class="num text-danger" id="tbl-m-tax">-$1.52</td>
+                <td class="num text-danger" id="tbl-y-tax">-$1.08</td>
+                <td class="num text-success" id="tbl-diff-tax">+$0.44</td>
+              </tr>
+              <tr>
+                <td>หักค่าธรรมเนียมตามสัดส่วน (Platform % Fee)</td>
+                <td class="num text-danger" id="tbl-m-pctfee">-$0.48</td>
+                <td class="num text-danger" id="tbl-y-pctfee">-$0.34</td>
+                <td class="num text-success" id="tbl-diff-pctfee">+$0.14</td>
+              </tr>
+              <tr class="highlight-table-row">
+                <td><strong>หักค่าธรรมเนียมคงที่ (Fixed Fee $0.30/ครั้ง)</strong></td>
+                <td class="num text-danger fw-bold" id="tbl-m-fixedfee">-$3.60 (12 ครั้ง)</td>
+                <td class="num text-success fw-bold" id="tbl-y-fixedfee">-$0.30 (1 ครั้ง)</td>
+                <td class="num text-success fw-bold" id="tbl-diff-fixedfee">ประหยัด +$3.30</td>
+              </tr>
+              <tr class="highlight-table-row">
+                <td><strong>หักต้นทุนผันแปรต่อธุรกรรม ($0.10/ครั้ง)</strong></td>
+                <td class="num text-danger fw-bold" id="tbl-m-varcost">-$1.20 (12 ครั้ง)</td>
+                <td class="num text-success fw-bold" id="tbl-y-varcost">-$0.10 (1 ครั้ง)</td>
+                <td class="num text-success fw-bold" id="tbl-diff-varcost">ประหยัด +$1.10</td>
+              </tr>
+              <tr class="total-row">
+                <td><strong>รายได้สุทธิที่ได้รับจริง (Total Net Earnings)</strong></td>
+                <td class="num fw-bold" id="tbl-m-net">$9.88</td>
+                <td class="num fw-bold text-success" id="tbl-y-net">$9.06</td>
+                <td class="num fw-bold" id="tbl-diff-net">ต่างกันเพียง -$0.82</td>
+              </tr>
+              <tr>
+                <td>อัตรากำไรสุทธิเทียบยอดขาย (Profit Margin %)</td>
+                <td class="num" id="tbl-m-margin-pct">59.2%</td>
+                <td class="num fw-bold text-success" id="tbl-y-margin-pct">76.3%</td>
+                <td class="num text-success fw-bold" id="tbl-diff-margin">+17.1% (รายปีเหนือกว่า)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: PRICEBOOK TABLE -->
+    <div id="tab-pricebook" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            ตาราง PriceBook (ครบทั้ง 48 แถว)
+          </h2>
+          <div style="font-size: 12px; color: var(--muted);">
+            คลิกที่แถวใดแถวหนึ่งเพื่อส่งค่าไปยังแบบจำลอง Simulator ด้านบน
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-toolbar">
+            <div class="filter-group">
+              <input type="text" id="tbl-search" class="search-input" placeholder="ค้นหา ประเทศ หรือ แพ็กเกจ..." oninput="renderPriceBookTable()">
+              
+              <select id="tbl-filter-country" class="select-filter" onchange="renderPriceBookTable()">
+                <option value="ALL">ทุกประเทศ (12 ประเทศ)</option>
+              </select>
+
+              <select id="tbl-filter-plan" class="select-filter" onchange="renderPriceBookTable()">
+                <option value="ALL">ทุกแพ็กเกจ</option>
+                <option value="Tier 2">Tier 2</option>
+                <option value="Tier 3">Tier 3</option>
+                <option value="Tier 4">Tier 4</option>
+                <option value="Look & Feel">Look & Feel</option>
+              </select>
+
+              <select id="tbl-filter-status" class="select-filter" onchange="renderPriceBookTable()">
+                <option value="ALL">ทุกสถานะ Pass</option>
+                <option value="ผ่าน">เฉพาะที่ "ผ่าน"</option>
+                <option value="ต่ำกว่าเป้า">เฉพาะที่ "ต่ำกว่าเป้า"</option>
+              </select>
+            </div>
+
+            <div style="font-size: 12px; color: var(--muted);">
+              แสดง <strong id="tbl-count">48</strong> จาก 48 รายการ
+            </div>
+          </div>
+
+          <div class="table-container">
+            <table class="data-table" id="main-data-table">
+              <thead>
+                <tr>
+                  <th>ประเทศ</th>
+                  <th>Wave</th>
+                  <th>Plan</th>
+                  <th class="num">BasePrice</th>
+                  <th class="num">Multiplier</th>
+                  <th class="num">Tax %</th>
+                  <th class="num">FinalPrice</th>
+                  <th class="num">RawPrice (H)</th>
+                  <th class="num">NetWeb (I)</th>
+                  <th class="num">NetStore (J)</th>
+                  <th class="num">Target (K)</th>
+                  <th>Pass (L)</th>
+                  <th class="num">MinWeb (M)</th>
+                  <th class="num">MinStore (N)</th>
+                  <th class="num">MinRaw (O)</th>
+                  <th class="num">MinPrice (P)</th>
+                  <th class="num">Recommended (Q)</th>
+                  <th>จำลอง</th>
+                </tr>
+              </thead>
+              <tbody id="table-body">
+                <!-- rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: ASSUMPTIONS -->
+    <div id="tab-assumptions" class="tab-content">
+      <div class="card" style="max-width: 800px; margin: 0 auto;">
+        <div class="card-header">
+          <h2>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            ตั้งค่าตัวแปรสมมติฐาน (Assumptions Parameters)
+          </h2>
+          <button class="btn-reset" onclick="resetAssumptions()">คืนค่าเริ่มต้น</button>
+        </div>
+        <div class="card-body">
+          <p style="font-size: 13px; color: var(--muted); margin-bottom: 20px;">
+            เมื่อแก้ไขค่าในหน้านี้ ระบบจะคำนวณใหม่ทั้งในเครื่องจำลอง (Simulator), แผนรายเดือน vs รายปี, และตาราง PriceBook ทั้ง 48 แถวแบบ Real-Time ทันที
+          </p>
+
+          <div class="form-group">
+            <label for="asm-b2">
+              B2: Web Fee Percentage (อัตราค่าธรรมเนียมเว็บ)
+              <span class="label-note">ค่าเริ่มต้น 2.9% (0.029)</span>
+            </label>
+            <div class="input-group">
+              <input type="number" id="asm-b2" class="input-control" step="0.001" value="0.029" oninput="onAssumptionsChange()">
+              <span class="suffix">% (0.029)</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="asm-b3">
+              B3: Web Fixed Fee USD (ค่าธรรมเนียมคงที่เว็บต่อรายการ)
+              <span class="label-note">ค่าเริ่มต้น $0.30</span>
+            </label>
+            <div class="input-group">
+              <span class="prefix">$</span>
+              <input type="number" id="asm-b3" class="input-control" step="0.01" value="0.30" oninput="onAssumptionsChange()">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="asm-b4">
+              B4: Store Fee Percentage (อัตราค่าธรรมเนียม App Store / Play Store)
+              <span class="label-note">ค่าเริ่มต้น 15% (0.15)</span>
+            </label>
+            <div class="input-group">
+              <input type="number" id="asm-b4" class="input-control" step="0.01" value="0.15" oninput="onAssumptionsChange()">
+              <span class="suffix">% (0.15)</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="asm-b5">
+              B5: Variable Cost USD (ต้นทุนผันแปรต่อธุรกรรม)
+              <span class="label-note">ค่าเริ่มต้น $0.10</span>
+            </label>
+            <div class="input-group">
+              <span class="prefix">$</span>
+              <input type="number" id="asm-b5" class="input-control" step="0.01" value="0.10" oninput="onAssumptionsChange()">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="asm-b6">
+              B6: Target Ratio (สัดส่วนเป้าหมายกำไรสุทธิเทียบ BasePrice)
+              <span class="label-note">ค่าเริ่มต้น 50% (0.50)</span>
+            </label>
+            <div class="input-group">
+              <input type="number" id="asm-b6" class="input-control" step="0.05" value="0.50" oninput="onAssumptionsChange()">
+              <span class="suffix">Ratio (0.5)</span>
+            </div>
+          </div>
+
+          <div style="background: var(--surface-subtle); padding: 14px; border-radius: var(--radius-sm); font-size: 12px; margin-top: 20px; border: 1px solid var(--border);">
+            <div style="font-weight: 700; margin-bottom: 4px;">สรุปสูตรคำนวณที่ใช้ในระบบ:</div>
+            <ul style="padding-left: 20px; line-height: 1.8;">
+              <li><code>RawPrice</code> = BasePrice × Multiplier</li>
+              <li><code>NetWeb</code> = FinalPrice / (1 + Tax) − (FinalPrice × WebFee% + WebFixedFee) − VariableCost</li>
+              <li><code>NetStore</code> = FinalPrice / (1 + Tax) × (1 − StoreFee%) − VariableCost</li>
+              <li><code>Target</code> = BasePrice × TargetRatio</li>
+              <li><code>Pass</code> = ผ่าน เมื่อ MIN(NetWeb, NetStore) ≥ Target</li>
+              <li><code>MinWeb</code> = (Target + WebFixedFee + VariableCost) / (1/(1+Tax) − WebFee%)</li>
+              <li><code>MinStore</code> = (Target + VariableCost) / ((1 − StoreFee%)/(1+Tax))</li>
+              <li><code>MinRaw</code> = MAX(MinWeb, MinStore)</li>
+              <li><code>MinPrice</code> = ปัดขึ้นเป็นราคาจิตวิทยาลงท้ายด้วย .49 หรือ .99</li>
+              <li><code>Recommended</code> = MAX(FinalPrice, MinPrice)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Theme Management (Light / Dark)
+    let currentTheme = 'light';
+
+    function initTheme() {
+      try {
+        const savedTheme = localStorage.getItem('pricebook_theme');
+        if (savedTheme) {
+          currentTheme = savedTheme;
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          currentTheme = 'dark';
+        }
+      } catch (e) {
+        // Fallback default light
+      }
+      applyTheme(currentTheme);
+    }
+
+    function toggleTheme() {
+      currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+      applyTheme(currentTheme);
+      try {
+        localStorage.setItem('pricebook_theme', currentTheme);
+      } catch (e) {}
+    }
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      const icon = document.getElementById('theme-icon');
+      const text = document.getElementById('theme-text');
+      if (theme === 'dark') {
+        if (icon) icon.textContent = '☀️';
+        if (text) text.textContent = 'โหมดสว่าง';
+      } else {
+        if (icon) icon.textContent = '🌙';
+        if (text) text.textContent = 'โหมดมืด';
+      }
+    }
+
+    // Raw original 48 records from -A.txt
+    const RAW_PRICEBOOK_DATA = [
+      { country: "ไทย", wave: 0, plan: "Tier 2", basePrice: 3.0, multiplier: 1.00, tax: 0.1, finalPrice: 2.99 },
+      { country: "ไทย", wave: 0, plan: "Tier 3", basePrice: 9.0, multiplier: 1.00, tax: 0.1, finalPrice: 8.99 },
+      { country: "ไทย", wave: 0, plan: "Tier 4", basePrice: 20.0, multiplier: 1.00, tax: 0.1, finalPrice: 19.99 },
+      { country: "ไทย", wave: 0, plan: "Look & Feel", basePrice: 0.99, multiplier: 1.00, tax: 0.1, finalPrice: 1.49 },
+      { country: "สิงคโปร์", wave: 1, plan: "Tier 2", basePrice: 3.0, multiplier: 1.25, tax: 0.1, finalPrice: 3.99 },
+      { country: "สิงคโปร์", wave: 1, plan: "Tier 3", basePrice: 9.0, multiplier: 1.25, tax: 0.1, finalPrice: 11.49 },
+      { country: "สิงคโปร์", wave: 1, plan: "Tier 4", basePrice: 20.0, multiplier: 1.25, tax: 0.1, finalPrice: 24.99 },
+      { country: "สิงคโปร์", wave: 1, plan: "Look & Feel", basePrice: 0.99, multiplier: 1.25, tax: 0.1, finalPrice: 1.49 },
+      { country: "มาเลเซีย", wave: 1, plan: "Tier 2", basePrice: 3.0, multiplier: 0.90, tax: 0.1, finalPrice: 2.49 },
+      { country: "มาเลเซีย", wave: 1, plan: "Tier 3", basePrice: 9.0, multiplier: 0.90, tax: 0.1, finalPrice: 7.99 },
+      { country: "มาเลเซีย", wave: 1, plan: "Tier 4", basePrice: 20.0, multiplier: 0.90, tax: 0.1, finalPrice: 17.99 },
+      { country: "มาเลเซีย", wave: 1, plan: "Look & Feel", basePrice: 0.99, multiplier: 0.90, tax: 0.1, finalPrice: 1.49 },
+      { country: "ญี่ปุ่น", wave: 2, plan: "Tier 2", basePrice: 3.0, multiplier: 1.15, tax: 0.1, finalPrice: 3.49 },
+      { country: "ญี่ปุ่น", wave: 2, plan: "Tier 3", basePrice: 9.0, multiplier: 1.15, tax: 0.1, finalPrice: 10.49 },
+      { country: "ญี่ปุ่น", wave: 2, plan: "Tier 4", basePrice: 20.0, multiplier: 1.15, tax: 0.1, finalPrice: 22.99 },
+      { country: "ญี่ปุ่น", wave: 2, plan: "Look & Feel", basePrice: 0.99, multiplier: 1.15, tax: 0.1, finalPrice: 1.49 },
+      { country: "สหราชอาณาจักร", wave: 2, plan: "Tier 2", basePrice: 3.0, multiplier: 1.30, tax: 0.1, finalPrice: 3.99 },
+      { country: "สหราชอาณาจักร", wave: 2, plan: "Tier 3", basePrice: 9.0, multiplier: 1.30, tax: 0.1, finalPrice: 11.49 },
+      { country: "สหราชอาณาจักร", wave: 2, plan: "Tier 4", basePrice: 20.0, multiplier: 1.30, tax: 0.1, finalPrice: 25.99 },
+      { country: "สหราชอาณาจักร", wave: 2, plan: "Look & Feel", basePrice: 0.99, multiplier: 1.30, tax: 0.1, finalPrice: 1.49 },
+      { country: "สหภาพยุโรป", wave: 3, plan: "Tier 2", basePrice: 3.0, multiplier: 1.25, tax: 0.1, finalPrice: 3.99 },
+      { country: "สหภาพยุโรป", wave: 3, plan: "Tier 3", basePrice: 9.0, multiplier: 1.25, tax: 0.1, finalPrice: 11.49 },
+      { country: "สหภาพยุโรป", wave: 3, plan: "Tier 4", basePrice: 20.0, multiplier: 1.25, tax: 0.1, finalPrice: 24.99 },
+      { country: "สหภาพยุโรป", wave: 3, plan: "Look & Feel", basePrice: 0.99, multiplier: 1.25, tax: 0.1, finalPrice: 1.49 },
+      { country: "อินโดนีเซีย", wave: 3, plan: "Tier 2", basePrice: 3.0, multiplier: 0.70, tax: 0.1, finalPrice: 2.49 },
+      { country: "อินโดนีเซีย", wave: 3, plan: "Tier 3", basePrice: 9.0, multiplier: 0.70, tax: 0.1, finalPrice: 6.49 },
+      { country: "อินโดนีเซีย", wave: 3, plan: "Tier 4", basePrice: 20.0, multiplier: 0.70, tax: 0.1, finalPrice: 13.99 },
+      { country: "อินโดนีเซีย", wave: 3, plan: "Look & Feel", basePrice: 0.99, multiplier: 0.70, tax: 0.1, finalPrice: 1.49 },
+      { country: "ตุรกี", wave: 4, plan: "Tier 2", basePrice: 3.0, multiplier: 0.70, tax: 0.1, finalPrice: 2.49 },
+      { country: "ตุรกี", wave: 4, plan: "Tier 3", basePrice: 9.0, multiplier: 0.70, tax: 0.1, finalPrice: 6.49 },
+      { country: "ตุรกี", wave: 4, plan: "Tier 4", basePrice: 20.0, multiplier: 0.70, tax: 0.1, finalPrice: 13.99 },
+      { country: "ตุรกี", wave: 4, plan: "Look & Feel", basePrice: 0.99, multiplier: 0.70, tax: 0.1, finalPrice: 1.49 },
+      { country: "อินเดีย", wave: 4, plan: "Tier 2", basePrice: 3.0, multiplier: 0.60, tax: 0.1, finalPrice: 2.49 },
+      { country: "อินเดีย", wave: 4, plan: "Tier 3", basePrice: 9.0, multiplier: 0.60, tax: 0.1, finalPrice: 5.99 },
+      { country: "อินเดีย", wave: 4, plan: "Tier 4", basePrice: 20.0, multiplier: 0.60, tax: 0.1, finalPrice: 13.49 },
+      { country: "อินเดีย", wave: 4, plan: "Look & Feel", basePrice: 0.99, multiplier: 0.60, tax: 0.1, finalPrice: 1.49 },
+      { country: "UAE", wave: 5, plan: "Tier 2", basePrice: 3.0, multiplier: 1.15, tax: 0.1, finalPrice: 3.49 },
+      { country: "UAE", wave: 5, plan: "Tier 3", basePrice: 9.0, multiplier: 1.15, tax: 0.1, finalPrice: 10.49 },
+      { country: "UAE", wave: 5, plan: "Tier 4", basePrice: 20.0, multiplier: 1.15, tax: 0.1, finalPrice: 22.99 },
+      { country: "UAE", wave: 5, plan: "Look & Feel", basePrice: 0.99, multiplier: 1.15, tax: 0.1, finalPrice: 1.49 },
+      { country: "เวียดนาม", wave: 5, plan: "Tier 2", basePrice: 3.0, multiplier: 0.70, tax: 0.1, finalPrice: 2.49 },
+      { country: "เวียดนาม", wave: 5, plan: "Tier 3", basePrice: 9.0, multiplier: 0.70, tax: 0.1, finalPrice: 6.49 },
+      { country: "เวียดนาม", wave: 5, plan: "Tier 4", basePrice: 20.0, multiplier: 0.70, tax: 0.1, finalPrice: 13.99 },
+      { country: "เวียดนาม", wave: 5, plan: "Look & Feel", basePrice: 0.99, multiplier: 0.70, tax: 0.1, finalPrice: 1.49 },
+      { country: "ซาอุดีอาระเบีย", wave: 5, plan: "Tier 2", basePrice: 3.0, multiplier: 1.05, tax: 0.1, finalPrice: 2.99 },
+      { country: "ซาอุดีอาระเบีย", wave: 5, plan: "Tier 3", basePrice: 9.0, multiplier: 1.05, tax: 0.1, finalPrice: 9.49 },
+      { country: "ซาอุดีอาระเบีย", wave: 5, plan: "Tier 4", basePrice: 20.0, multiplier: 1.05, tax: 0.1, finalPrice: 20.99 },
+      { country: "ซาอุดีอาระเบีย", wave: 5, plan: "Look & Feel", basePrice: 0.99, multiplier: 1.05, tax: 0.1, finalPrice: 1.49 }
+    ];
+
+    // Current Assumptions
+    let assumptions = {
+      b2: 0.029, // Web fee %
+      b3: 0.30,  // Web fixed fee USD
+      b4: 0.15,  // Store fee %
+      b5: 0.10,  // Variable cost USD
+      b6: 0.50   // Target ratio
+    };
+
+    // Calculate formula outputs for a single row / scenario
+    function computeRow(base, mult, tax, final) {
+      const b2 = assumptions.b2;
+      const b3 = assumptions.b3;
+      const b4 = assumptions.b4;
+      const b5 = assumptions.b5;
+      const b6 = assumptions.b6;
+
+      const rawPrice = base * mult;
+      // Formula I2
+      const netWeb = (final / (1 + tax)) - (final * b2 + b3) - b5;
+      // Formula J2
+      const netStore = (final / (1 + tax)) * (1 - b4) - b5;
+      // Formula K2
+      const target = base * b6;
+      // Formula L2
+      const isPass = Math.min(netWeb, netStore) >= target;
+      const pass = isPass ? "ผ่าน" : "ต่ำกว่าเป้า";
+
+      // Formula M2
+      const minWeb = (target + b3 + b5) / (1 / (1 + tax) - b2);
+      // Formula N2
+      const minStore = (target + b5) / ((1 - b4) / (1 + tax));
+      // Formula O2
+      const minRaw = Math.max(minWeb, minStore);
+
+      // Formula P2: =IF(O2<=INT(O2)+0.49,INT(O2)+0.49,IF(O2<=INT(O2)+0.99,INT(O2)+0.99,INT(O2)+1.49))
+      const intO = Math.floor(minRaw);
+      let minPrice;
+      if (minRaw <= intO + 0.49) {
+        minPrice = intO + 0.49;
+      } else if (minRaw <= intO + 0.99) {
+        minPrice = intO + 0.99;
+      } else {
+        minPrice = intO + 1.49;
+      }
+
+      // Formula Q2
+      const recommended = Math.max(final, minPrice);
+
+      return {
+        rawPrice,
+        netWeb,
+        netStore,
+        target,
+        pass,
+        isPass,
+        minWeb,
+        minStore,
+        minRaw,
+        minPrice,
+        recommended
+      };
+    }
+
+    // Formatters
+    const fmtUSD = (val) => '$' + Number(val).toFixed(2);
+    const fmtNum = (val, dec = 2) => Number(val).toFixed(dec);
+
+    // Tab Switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+      if (tabId === 'simulator') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('tab-simulator').classList.add('active');
+      } else if (tabId === 'annual') {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('tab-annual').classList.add('active');
+        calculateAnnualComparison();
+      } else if (tabId === 'pricebook') {
+        document.querySelectorAll('.tab-btn')[2].classList.add('active');
+        document.getElementById('tab-pricebook').classList.add('active');
+        renderPriceBookTable();
+      } else if (tabId === 'assumptions') {
+        document.querySelectorAll('.tab-btn')[3].classList.add('active');
+        document.getElementById('tab-assumptions').classList.add('active');
+      }
+    }
+
+    // Populate Simulator Dropdown
+    function populateSimulatorSelect() {
+      const select = document.getElementById('sim-select-item');
+      select.innerHTML = '<option value="-1">-- เลือกรายการใน PriceBook หรือใส่ค่าอิสระ --</option>';
+      RAW_PRICEBOOK_DATA.forEach((item, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = `[${item.country}] ${item.plan} (Final: $${item.finalPrice.toFixed(2)})`;
+        select.appendChild(opt);
+      });
+      // default select Thai Tier 2
+      select.value = "0";
+      onSelectItem("0");
+    }
+
+    // When an item in the select is chosen
+    function onSelectItem(val) {
+      const idx = parseInt(val, 10);
+      if (idx >= 0 && idx < RAW_PRICEBOOK_DATA.length) {
+        const item = RAW_PRICEBOOK_DATA[idx];
+        document.getElementById('sim-base-price').value = item.basePrice.toFixed(2);
+        document.getElementById('sim-multiplier').value = item.multiplier.toFixed(2);
+        document.getElementById('sim-tax').value = item.tax.toFixed(2);
+        document.getElementById('sim-final-price').value = item.finalPrice.toFixed(2);
+      }
+      calculateSimulator();
+    }
+
+    function resetSimulatorToDefault() {
+      document.getElementById('sim-select-item').value = "0";
+      onSelectItem("0");
+    }
+
+    // Main simulator calculate function
+    function calculateSimulator() {
+      const base = parseFloat(document.getElementById('sim-base-price').value) || 0;
+      const mult = parseFloat(document.getElementById('sim-multiplier').value) || 0;
+      const tax = parseFloat(document.getElementById('sim-tax').value) || 0;
+      const final = parseFloat(document.getElementById('sim-final-price').value) || 0;
+
+      const res = computeRow(base, mult, tax, final);
+
+      // KPI outputs
+      document.getElementById('res-target').textContent = fmtUSD(res.target);
+      document.getElementById('sub-base').textContent = fmtNum(base, 2);
+
+      const statusBadge = document.getElementById('res-status');
+      if (res.isPass) {
+        statusBadge.textContent = 'ผ่านเป้าหมาย (Pass)';
+        statusBadge.className = 'status-badge status-pass';
+      } else {
+        statusBadge.textContent = 'ต่ำกว่าเป้า (Below Target)';
+        statusBadge.className = 'status-badge status-fail';
+      }
+
+      // Limiting factor note
+      const limitingChannel = res.minWeb >= res.minStore ? 'Web Platform (ค่าธรรมเนียมคงที่ $0.30)' : 'In-App Store (ค่าธรรมเนียม 15%)';
+      document.getElementById('res-limiting-note').textContent = `ตัวจำกัดราคาต่ำสุด: ${limitingChannel}`;
+
+      document.getElementById('res-recommended').textContent = fmtUSD(res.recommended);
+
+      // Channel details
+      document.getElementById('res-net-web').textContent = fmtUSD(res.netWeb);
+      document.getElementById('res-min-web').textContent = fmtUSD(res.minWeb);
+      const tagWeb = document.getElementById('tag-web-status');
+      if (res.netWeb >= res.target) {
+        tagWeb.textContent = 'ผ่าน';
+        tagWeb.className = 'status-badge status-pass';
+        document.getElementById('box-web').style.borderColor = 'var(--border)';
+      } else {
+        tagWeb.textContent = 'ไม่ผ่าน';
+        tagWeb.className = 'status-badge status-fail';
+        document.getElementById('box-web').style.borderColor = '#fca5a5';
+      }
+
+      document.getElementById('res-net-store').textContent = fmtUSD(res.netStore);
+      document.getElementById('res-min-store').textContent = fmtUSD(res.minStore);
+      const tagStore = document.getElementById('tag-store-status');
+      if (res.netStore >= res.target) {
+        tagStore.textContent = 'ผ่าน';
+        tagStore.className = 'status-badge status-pass';
+        document.getElementById('box-store').style.borderColor = 'var(--border)';
+      } else {
+        tagStore.textContent = 'ไม่ผ่าน';
+        tagStore.className = 'status-badge status-fail';
+        document.getElementById('box-store').style.borderColor = '#fca5a5';
+      }
+
+      // Waterfall breakdown values
+      document.getElementById('wf-final-web').textContent = fmtUSD(final);
+      document.getElementById('wf-final-store').textContent = fmtUSD(final);
+      document.getElementById('wf-tax-pct').textContent = (tax * 100).toFixed(1) + '%';
+
+      const taxDeduction = final - (final / (1 + tax));
+      document.getElementById('wf-tax-web').textContent = `-${fmtUSD(taxDeduction)}`;
+      document.getElementById('wf-tax-store').textContent = `-${fmtUSD(taxDeduction)}`;
+
+      const preFee = final / (1 + tax);
+      document.getElementById('wf-prefee-web').textContent = fmtUSD(preFee);
+      document.getElementById('wf-prefee-store').textContent = fmtUSD(preFee);
+
+      const feeWeb = final * assumptions.b2 + assumptions.b3;
+      const feeStore = preFee * assumptions.b4;
+      document.getElementById('wf-fee-web').textContent = `-${fmtUSD(feeWeb)}`;
+      document.getElementById('wf-fee-store').textContent = `-${fmtUSD(feeStore)}`;
+
+      document.getElementById('wf-varcost-web').textContent = `-${fmtUSD(assumptions.b5)}`;
+      document.getElementById('wf-varcost-store').textContent = `-${fmtUSD(assumptions.b5)}`;
+
+      document.getElementById('wf-net-web').textContent = fmtUSD(res.netWeb);
+      document.getElementById('wf-net-store').textContent = fmtUSD(res.netStore);
+
+      // Recommended bottom banner
+      document.getElementById('rec-minprice-highlight').textContent = fmtUSD(res.minPrice);
+      document.getElementById('rec-user-price').textContent = fmtNum(final, 2);
+      document.getElementById('rec-minraw').textContent = fmtNum(res.minRaw, 2);
+      document.getElementById('rec-final-recommend').textContent = fmtUSD(res.recommended);
+    }
+
+    // Populate country filter in PriceBook table
+    function populateCountryFilter() {
+      const select = document.getElementById('tbl-filter-country');
+      const countries = [...new Set(RAW_PRICEBOOK_DATA.map(d => d.country))];
+      countries.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        select.appendChild(opt);
+      });
+    }
+
+    // Render 48-row table
+    function renderPriceBookTable() {
+      const search = (document.getElementById('tbl-search').value || '').toLowerCase().trim();
+      const countryFilter = document.getElementById('tbl-filter-country').value;
+      const planFilter = document.getElementById('tbl-filter-plan').value;
+      const statusFilter = document.getElementById('tbl-filter-status').value;
+
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '';
+
+      let visibleCount = 0;
+
+      RAW_PRICEBOOK_DATA.forEach((item, idx) => {
+        const res = computeRow(item.basePrice, item.multiplier, item.tax, item.finalPrice);
+
+        // Filter checks
+        if (countryFilter !== 'ALL' && item.country !== countryFilter) return;
+        if (planFilter !== 'ALL' && item.plan !== planFilter) return;
+        if (statusFilter !== 'ALL' && res.pass !== statusFilter) return;
+        if (search) {
+          const rowText = `${item.country} ${item.plan} wave${item.wave}`.toLowerCase();
+          if (!rowText.includes(search)) return;
+        }
+
+        visibleCount++;
+
+        const tr = document.createElement('tr');
+        tr.onclick = (e) => {
+          if (e.target.tagName !== 'BUTTON') {
+            loadRowToSimulator(idx);
+          }
+        };
+
+        tr.innerHTML = `
+          <td><strong>${item.country}</strong></td>
+          <td style="text-align: center;">${item.wave}</td>
+          <td>${item.plan}</td>
+          <td class="num">${fmtUSD(item.basePrice)}</td>
+          <td class="num">${fmtNum(item.multiplier, 2)}</td>
+          <td class="num">${(item.tax * 100).toFixed(0)}%</td>
+          <td class="num fw-bold">${fmtUSD(item.finalPrice)}</td>
+          <td class="num">${fmtUSD(res.rawPrice)}</td>
+          <td class="num ${res.netWeb >= res.target ? 'text-success' : 'text-danger'}">${fmtUSD(res.netWeb)}</td>
+          <td class="num ${res.netStore >= res.target ? 'text-success' : 'text-danger'}">${fmtUSD(res.netStore)}</td>
+          <td class="num">${fmtUSD(res.target)}</td>
+          <td style="text-align: center;">
+            <span class="status-badge ${res.isPass ? 'status-pass' : 'status-fail'}">${res.pass}</span>
+          </td>
+          <td class="num">${fmtUSD(res.minWeb)}</td>
+          <td class="num">${fmtUSD(res.minStore)}</td>
+          <td class="num">${fmtUSD(res.minRaw)}</td>
+          <td class="num fw-bold">${fmtUSD(res.minPrice)}</td>
+          <td class="num fw-bold text-success">${fmtUSD(res.recommended)}</td>
+          <td style="text-align: center;">
+            <button class="pill-btn" onclick="loadRowToSimulator(${idx})">จำลอง</button>
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('tbl-count').textContent = visibleCount;
+    }
+
+    function loadRowToSimulator(idx) {
+      document.getElementById('sim-select-item').value = idx;
+      onSelectItem(idx);
+      switchTab('simulator');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Assumptions logic
+    function onAssumptionsChange() {
+      assumptions.b2 = parseFloat(document.getElementById('asm-b2').value) || 0;
+      assumptions.b3 = parseFloat(document.getElementById('asm-b3').value) || 0;
+      assumptions.b4 = parseFloat(document.getElementById('asm-b4').value) || 0;
+      assumptions.b5 = parseFloat(document.getElementById('asm-b5').value) || 0;
+      assumptions.b6 = parseFloat(document.getElementById('asm-b6').value) || 0;
+
+      calculateSimulator();
+      calculateAnnualComparison();
+      renderPriceBookTable();
+    }
+
+    function resetAssumptions() {
+      document.getElementById('asm-b2').value = 0.029;
+      document.getElementById('asm-b3').value = 0.30;
+      document.getElementById('asm-b4').value = 0.15;
+      document.getElementById('asm-b5').value = 0.10;
+      document.getElementById('asm-b6').value = 0.50;
+      onAssumptionsChange();
+    }
+
+    // Monthly vs Annual Calculations
+    function applyAnnualPreset(monthly, yearly, equiv, label) {
+      document.querySelectorAll('.preset-pill').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+
+      document.getElementById('ann-monthly-price').value = monthly.toFixed(2);
+      document.getElementById('ann-yearly-price').value = yearly.toFixed(2);
+      document.getElementById('ann-equiv-monthly').value = equiv.toFixed(2);
+      calculateAnnualComparison();
+    }
+
+    function onYearlyPriceInput() {
+      const yearly = parseFloat(document.getElementById('ann-yearly-price').value) || 0;
+      document.getElementById('ann-equiv-monthly').value = (yearly / 12).toFixed(2);
+      calculateAnnualComparison();
+    }
+
+    function onEquivMonthlyInput() {
+      const equiv = parseFloat(document.getElementById('ann-equiv-monthly').value) || 0;
+      document.getElementById('ann-yearly-price').value = (equiv * 12).toFixed(2);
+      calculateAnnualComparison();
+    }
+
+    function calculateAnnualComparison() {
+      const monthlyPrice = parseFloat(document.getElementById('ann-monthly-price').value) || 0;
+      const yearlyPrice = parseFloat(document.getElementById('ann-yearly-price').value) || 0;
+      const equivMonthly = parseFloat(document.getElementById('ann-equiv-monthly').value) || (yearlyPrice / 12);
+      const channel = document.getElementById('ann-channel').value; // 'WEB' or 'STORE'
+      const taxRate = 0.10; // default standard tax 10%
+
+      // Assumptions
+      const b2 = assumptions.b2; // Web fee %
+      const b3 = assumptions.b3; // Web fixed fee USD
+      const b4 = assumptions.b4; // Store fee %
+      const b5 = assumptions.b5; // Variable cost USD
+
+      // Monthly Plan calculations (12 transactions in 1 year)
+      const mGrossPerTx = monthlyPrice;
+      const mGross1Year = mGrossPerTx * 12;
+      const mTaxPerTx = mGrossPerTx - (mGrossPerTx / (1 + taxRate));
+      const mTax1Year = mTaxPerTx * 12;
+      const mPreFeePerTx = mGrossPerTx / (1 + taxRate);
+      
+      let mPctFeePerTx = 0;
+      let mFixedFeePerTx = 0;
+      if (channel === 'WEB') {
+        mPctFeePerTx = mGrossPerTx * b2;
+        mFixedFeePerTx = b3;
+      } else {
+        mPctFeePerTx = mPreFeePerTx * b4;
+        mFixedFeePerTx = 0;
+      }
+      const mVarCostPerTx = b5;
+
+      const mNetPerTx = mPreFeePerTx - mPctFeePerTx - mFixedFeePerTx - mVarCostPerTx;
+      const mNet1Year = mNetPerTx * 12;
+      const mTotalFixed1Year = (mFixedFeePerTx + mVarCostPerTx) * 12;
+      const mTotalPctFee1Year = mPctFeePerTx * 12;
+      const mMarginPct = mGross1Year > 0 ? (mNet1Year / mGross1Year) * 100 : 0;
+
+      // Annual Plan calculations (1 transaction in 1 year)
+      const yGross1Year = yearlyPrice;
+      const yTax1Year = yGross1Year - (yGross1Year / (1 + taxRate));
+      const yPreFee1Year = yGross1Year / (1 + taxRate);
+
+      let yPctFee1Year = 0;
+      let yFixedFee1Year = 0;
+      if (channel === 'WEB') {
+        yPctFee1Year = yGross1Year * b2;
+        yFixedFee1Year = b3;
+      } else {
+        yPctFee1Year = yPreFee1Year * b4;
+        yFixedFee1Year = 0;
+      }
+      const yVarCost1Year = b5;
+
+      const yNet1Year = yPreFee1Year - yPctFee1Year - yFixedFee1Year - yVarCost1Year;
+      const yNetPerMonthEquiv = yNet1Year / 12;
+      const yTotalFixed1Year = yFixedFee1Year + yVarCost1Year;
+      const yMarginPct = yGross1Year > 0 ? (yNet1Year / yGross1Year) * 100 : 0;
+
+      // Comparison Metrics
+      const customerDiscountUSD = mGross1Year - yGross1Year;
+      const customerDiscountPct = mGross1Year > 0 ? (customerDiscountUSD / mGross1Year) * 100 : 0;
+      const freeMonths = monthlyPrice > 0 ? (customerDiscountUSD / monthlyPrice) : 0;
+      const fixedFeeSavedUSD = mTotalFixed1Year - yTotalFixed1Year;
+      const netProfitDiffUSD = yNet1Year - mNet1Year;
+
+      // Update UI Banner
+      document.getElementById('sum-discount-pct').textContent = `${customerDiscountPct.toFixed(1)}%`;
+      document.getElementById('sum-discount-text').textContent = `ประหยัด ${fmtUSD(customerDiscountUSD)} ต่อปี (เทียบเท่าฟรี ~${freeMonths.toFixed(1)} เดือน)`;
+      
+      document.getElementById('sum-fixed-saved').textContent = fmtUSD(fixedFeeSavedUSD);
+      document.getElementById('sum-margin-compare').textContent = `${yMarginPct.toFixed(1)}% vs ${mMarginPct.toFixed(1)}%`;
+      document.getElementById('sum-margin-text').textContent = `รายปีได้ Margin สูงกว่าถึง +${(yMarginPct - mMarginPct).toFixed(1)}%`;
+      document.getElementById('sum-cashflow').textContent = fmtUSD(yGross1Year);
+
+      // Update Monthly Card
+      document.getElementById('card-m-price').textContent = fmtUSD(monthlyPrice);
+      document.getElementById('card-m-total-gross').textContent = fmtUSD(mGross1Year);
+      document.getElementById('card-m-net-month').textContent = fmtUSD(mNetPerTx);
+      document.getElementById('card-m-margin').textContent = `${mMarginPct.toFixed(1)}%`;
+      document.getElementById('card-m-total-fixed').textContent = `-${fmtUSD(mTotalFixed1Year)}`;
+      document.getElementById('card-m-total-pctfee').textContent = `-${fmtUSD(mTotalPctFee1Year + mTax1Year)}`;
+      document.getElementById('card-m-net-year').textContent = fmtUSD(mNet1Year);
+
+      // Update Annual Card
+      document.getElementById('card-y-equiv').textContent = fmtUSD(equivMonthly);
+      document.getElementById('card-y-price').textContent = `${fmtUSD(yearlyPrice)} / ปี`;
+      document.getElementById('card-y-net-month').textContent = fmtUSD(yNetPerMonthEquiv);
+      document.getElementById('card-y-margin').textContent = `${yMarginPct.toFixed(1)}%`;
+      document.getElementById('card-y-total-fixed').textContent = `-${fmtUSD(yTotalFixed1Year)}`;
+      document.getElementById('card-y-total-pctfee').textContent = `-${fmtUSD(yPctFee1Year + yTax1Year)}`;
+      document.getElementById('card-y-net-year').textContent = fmtUSD(yNet1Year);
+
+      document.getElementById('note-discount').textContent = `${customerDiscountPct.toFixed(1)}%`;
+      document.getElementById('note-netdiff').textContent = Math.abs(netProfitDiffUSD).toFixed(2);
+      document.getElementById('note-savedfixed').textContent = fixedFeeSavedUSD.toFixed(2);
+
+      // Update Breakdown Table
+      document.getElementById('tbl-m-gross').textContent = fmtUSD(mGross1Year);
+      document.getElementById('tbl-y-gross').textContent = fmtUSD(yGross1Year);
+      document.getElementById('tbl-diff-gross').textContent = `-${fmtUSD(customerDiscountUSD)} (ลด ${customerDiscountPct.toFixed(1)}%)`;
+
+      document.getElementById('tbl-m-tax').textContent = `-${fmtUSD(mTax1Year)}`;
+      document.getElementById('tbl-y-tax').textContent = `-${fmtUSD(yTax1Year)}`;
+      document.getElementById('tbl-diff-tax').textContent = `+${fmtUSD(mTax1Year - yTax1Year)}`;
+
+      document.getElementById('tbl-m-pctfee').textContent = `-${fmtUSD(mTotalPctFee1Year)}`;
+      document.getElementById('tbl-y-pctfee').textContent = `-${fmtUSD(yPctFee1Year)}`;
+      document.getElementById('tbl-diff-pctfee').textContent = `+${fmtUSD(mTotalPctFee1Year - yPctFee1Year)}`;
+
+      if (channel === 'WEB') {
+        document.getElementById('tbl-m-fixedfee').textContent = `-${fmtUSD(b3 * 12)} (12 ครั้ง)`;
+        document.getElementById('tbl-y-fixedfee').textContent = `-${fmtUSD(b3)} (1 ครั้ง)`;
+        document.getElementById('tbl-diff-fixedfee').textContent = `ประหยัด +${fmtUSD(b3 * 11)}`;
+      } else {
+        document.getElementById('tbl-m-fixedfee').textContent = `$0.00 (ไม่มีค่าคงที่)`;
+        document.getElementById('tbl-y-fixedfee').textContent = `$0.00 (ไม่มีค่าคงที่)`;
+        document.getElementById('tbl-diff-fixedfee').textContent = `$0.00`;
+      }
+
+      document.getElementById('tbl-m-varcost').textContent = `-${fmtUSD(b5 * 12)} (12 ครั้ง)`;
+      document.getElementById('tbl-y-varcost').textContent = `-${fmtUSD(b5)} (1 ครั้ง)`;
+      document.getElementById('tbl-diff-varcost').textContent = `ประหยัด +${fmtUSD(b5 * 11)}`;
+
+      document.getElementById('tbl-m-net').textContent = fmtUSD(mNet1Year);
+      document.getElementById('tbl-y-net').textContent = fmtUSD(yNet1Year);
+      
+      const netDiffDisplay = netProfitDiffUSD >= 0 
+        ? `+${fmtUSD(netProfitDiffUSD)} (รายปีได้กำไรมากกว่า)` 
+        : `-${fmtUSD(Math.abs(netProfitDiffUSD))} (ต่างกันเล็กน้อย)`;
+      document.getElementById('tbl-diff-net').textContent = netDiffDisplay;
+      document.getElementById('tbl-diff-net').className = netProfitDiffUSD >= 0 ? 'num fw-bold text-success' : 'num fw-bold';
+
+      document.getElementById('tbl-m-margin-pct').textContent = `${mMarginPct.toFixed(1)}%`;
+      document.getElementById('tbl-y-margin-pct').textContent = `${yMarginPct.toFixed(1)}%`;
+      document.getElementById('tbl-diff-margin').textContent = `+${(yMarginPct - mMarginPct).toFixed(1)}% (รายปีเหนือกว่า)`;
+    }
+
+    // Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      populateCountryFilter();
+      populateSimulatorSelect();
+      renderPriceBookTable();
+      calculateSimulator();
+      calculateAnnualComparison();
+    });
+  </script>
+</body>
+</html>
